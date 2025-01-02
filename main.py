@@ -23,6 +23,8 @@ def parse_arguments():
     parser.add_argument('--set-size', default=18, type=int, help='The size of the set.')
     parser.add_argument('--llm-model', default='gpt-3.5-turbo', help='LLM model to use.')
     parser.add_argument('--graphics-model', default='dalle', help='Graphics model to use. Options: dalle, midjourney')
+    parser.add_argument('--art-guidance', default='', help='Art guidance for the graphics model.')
+    parser.add_argument('--art-only', action='store_true', help='Only generate art.')
     parser.add_argument('--mse-location', default='', help='Location of your mse.exe file, the Magic Set Editor. Used by the "full" action. If empty, cards will be rendered with an ugly HTML based method. If you\'re on Linux, use "wine mse.exe".')
 
     return parser.parse_args()
@@ -107,6 +109,8 @@ def generated_cards_json(args):
 
         # Iteratively criticize and improve the card
         num_fix_iterations = 4
+        if args.art_only:
+            num_fix_iterations = 0
         for fix_iteration in range(num_fix_iterations):
             # TODO Consider presenting all iterations here
             print(f"Fixing card {i + 1} out of {len(new_card_ideas)}, Iteration: {fix_iteration + 1}/{num_fix_iterations}")
@@ -165,7 +169,7 @@ def generate_full_card_images(args):
         mse_gen.load_and_create_set(args.set_name, args.mse_location)
 
 
-if __name__ == '__main__':
+def main():
     args = parse_arguments()
     os.makedirs(f"sets/{args.set_name}", exist_ok=True)
 
@@ -182,6 +186,13 @@ if __name__ == '__main__':
     if args.action == "images" or args.action == "all":
         print("Generating images...")
         generated_cards_images(args)
+    if args.art_only:
+        print("Art only mode, skipping full card images.")
+        return
     if args.action == "full" or args.action == "all":
         print("Generating full card images...")
         generate_full_card_images(args)
+
+
+if __name__ == '__main__':
+    main()

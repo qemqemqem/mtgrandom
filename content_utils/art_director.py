@@ -19,6 +19,8 @@ def get_art_prompt(card, args) -> Tuple[str, str]:
 
     inspiration = [random.choice(artists_for_inspiration), random.choice(artists_for_inspiration), random.choice(art_styles_for_inspiration), random.choice(art_styles_for_inspiration)]
 
+    art_guidance = "\n\n" + args.art_guidance if args.art_guidance else ""
+
     prompt = f"""I'm generating art for a Magic the Gathering card. 
 
 The details of the card are:
@@ -29,7 +31,7 @@ Type: {type_line}
 
 I'd like help generating a prompt to use to create art. First, I'd like you to brainstorm some options, and then I'd like you to write a prompt. 
 
-The final prompt needs to be relatively short, so we'll brainstorm first and then distill it into a short prompt. 
+The final prompt needs to be relatively short, so we'll brainstorm first and then distill it into a short prompt. {art_guidance}
 
 Please fill out this form:
 
@@ -50,7 +52,7 @@ Historical Artist: This is part of our "Historical Greats" collection, where we 
 
 # Decision
 
-From the options that you've brainstormed, loosely describe the card art. Try to think of a way in which the scene will be exciting or memorable. Don't be afraid to make bold visual choices to ensure a beautiful card. How can the description convey the cultural influences in a distinctive way?
+From the options that you've brainstormed, loosely describe the card art. Try to think of a way in which the scene will be exciting or memorable. Don't be afraid to make bold visual choices to ensure a beautiful card. How can the description convey the cultural influences in a distinctive way? {art_guidance}
 
 # Prompt
 
