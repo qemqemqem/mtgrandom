@@ -1,7 +1,9 @@
 
 # MTG Random Card Generator
 
-Generate custom Magic: The Gathering cards. Use ChatGPT or another LLM to generate JSON card details, using existing cards as examples (and to cue the formatting). Then, use an image generation AI such as DALLE to generate art for the cards. Full cards are then rendered using the generated JSON and images. 
+Generate custom Magic: The Gathering cards. Use ChatGPT or another LLM to generate JSON card details, using existing cards as examples (and to cue the formatting). Then, use an image generation AI such as DALLE to generate art for the cards. Full cards are then rendered using the generated JSON and images.
+
+⭐ If you find this project helpful, please consider giving it a star! ⭐
 
 See `sets/example/cards` for examples of generated cards.
 
