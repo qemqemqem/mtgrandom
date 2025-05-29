@@ -5,15 +5,33 @@ import time
 from urllib.parse import urlparse
 
 import requests
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # See here for an explanation of where these values come from:
 # https://github.com/yachty66/unofficial_midjourney_python_api
-MJ_APPLICATION_ID = os.environ["MJ_APPLICATION_ID"]
-MJ_GUILD_ID = os.environ["MJ_GUILD_ID"]
-MJ_CHANNEL_ID = os.environ["MJ_CHANNEL_ID"]
-MJ_VERSION = os.environ["MJ_VERSION"]
-MJ_ID = os.environ["MJ_ID"]
-MJ_AUTHORIZATION = os.environ["MJ_AUTHORIZATION"]
+MJ_APPLICATION_ID = os.getenv("MJ_APPLICATION_ID")
+MJ_GUILD_ID = os.getenv("MJ_GUILD_ID")
+MJ_CHANNEL_ID = os.getenv("MJ_CHANNEL_ID")
+MJ_VERSION = os.getenv("MJ_VERSION")
+MJ_ID = os.getenv("MJ_ID")
+MJ_AUTHORIZATION = os.getenv("MJ_AUTHORIZATION")
+
+# Validate that all required environment variables are set
+required_env_vars = {
+    "MJ_APPLICATION_ID": MJ_APPLICATION_ID,
+    "MJ_GUILD_ID": MJ_GUILD_ID,
+    "MJ_CHANNEL_ID": MJ_CHANNEL_ID,
+    "MJ_VERSION": MJ_VERSION,
+    "MJ_ID": MJ_ID,
+    "MJ_AUTHORIZATION": MJ_AUTHORIZATION,
+}
+
+missing_vars = [var for var, value in required_env_vars.items() if not value]
+if missing_vars:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}. Please check your .env file.")
 
 class MidjourneyApi():
     def __init__(self, prompt, application_id, guild_id, channel_id, version, id, authorization, download_dir, file_name):

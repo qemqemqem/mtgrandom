@@ -4,5 +4,6 @@ openai>=0.27.8
 pdf2image>=1.16.3
 Pillow>=10.0.0
 pygame>=2.5.0
+python-dotenv>=1.0.0
 requests>=2.25.0
 weasyprint>=59.0

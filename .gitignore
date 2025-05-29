@@ -146,3 +146,5 @@ debug_card.html
 !sets/example_nice/**
 !sets/example_nice/**/*
 !Card Examples/*
+
+.env
