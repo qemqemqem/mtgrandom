@@ -3,9 +3,9 @@ import re
 from typing import Tuple
 from pydantic import BaseModel
 
-from content_utils.llm import prompt_completion_chat
+from content_utils.llm import prompt_completion_chat_structured
 from set_logging.logger import log_generation_step
-from llm_config import LLMModel
+from content_utils.llm_config import LLMModel
 
 with open('content_utils/artists_for_inspiration.txt') as f:
     artists_for_inspiration = [l for l in f.read().splitlines() if l.strip() != ""]
@@ -68,27 +68,43 @@ Now, output a JSON object with the following fields:
 
     temperature = 0.0
     for _ in range(3):
-        response = prompt_completion_chat(
+        response = prompt_completion_chat_structured(
             messages=[
                 {"role": "system", "content": "You are an artistic assistant who works with Magic the Gathering"},
                 {"role": "user", "content": prompt}
             ],
+            response_format=ArtPromptModel,
             n=1,
             temperature=temperature,
             max_tokens=2048,
-            model_id=args.llm_model,
-            response_format=ArtPromptModel
+            model_id=args.llm_model
         )
-        # litellm will return a list of ArtPromptModel(s)
-        if response:
-            art_prompt_obj = response[0] if isinstance(response[0], ArtPromptModel) else ArtPromptModel.parse_raw(response[0])
+        
+        # The structured function should return an ArtPromptModel instance directly
+        if response and isinstance(response, ArtPromptModel):
             log_generation_step(
                 "art prompt",
                 "Create an art prompt for this card",
-                f"Prompt: {art_prompt_obj.final_prompt}\n\nArtist: {art_prompt_obj.artist_credit}\n\nFull: {response}",
+                f"Prompt: {response.final_prompt}\n\nArtist: {response.artist_credit}\n\nFull: {response}",
                 args.set_name if args else None,
                 name
             )
-            return art_prompt_obj.final_prompt, art_prompt_obj.artist_credit
+            return response.final_prompt, response.artist_credit
+        elif response:
+            # Fallback: if we get a string, try to parse it
+            try:
+                art_prompt_obj = ArtPromptModel.parse_raw(response) if isinstance(response, str) else response
+                log_generation_step(
+                    "art prompt",
+                    "Create an art prompt for this card",
+                    f"Prompt: {art_prompt_obj.final_prompt}\n\nArtist: {art_prompt_obj.artist_credit}\n\nFull: {response}",
+                    args.set_name if args else None,
+                    name
+                )
+                return art_prompt_obj.final_prompt, art_prompt_obj.artist_credit
+            except Exception as e:
+                print(f"Failed to parse response: {e}")
+                print(f"Response was: {response}")
+        
         temperature += 0.3
     raise ValueError("Art direction prompt not found")

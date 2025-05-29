@@ -4,7 +4,7 @@ import time
 from typing import List, Optional, Dict, Any
 
 import litellm
-from llm_config import LLM_ENDPOINTS, LLMModel
+from content_utils.llm_config import LLM_ENDPOINTS, LLMModel
 
 # --- Retry Decorator ---
 def retry_on_exception(max_retries=3, delay=1.0):
@@ -109,6 +109,85 @@ def prompt_completion_chat(
         return response["choices"][0]["message"]["content"].strip()
     else:
         return [choice["message"]["content"].strip() for choice in response["choices"]]
+
+# --- Structured Chat Completion ---
+@retry_on_exception(max_retries=3, delay=1.0)
+def prompt_completion_chat_structured(
+    messages: List[Dict[str, str]],
+    response_format,
+    model_id: LLMModel = LLMModel.BEST_WRITING_MODEL,
+    max_tokens: int = 256,
+    temperature: float = 1.0,
+    n: int = 1,
+    **kwargs
+):
+    """
+    Call a chat-style LLM using litellm with structured output (Pydantic models).
+    
+    Args:
+        messages: List of message dictionaries
+        response_format: Pydantic model class for structured output
+        model_id: LLM model to use
+        max_tokens: Maximum tokens to generate
+        temperature: Sampling temperature
+        n: Number of responses to generate
+        **kwargs: Additional parameters for litellm
+        
+    Returns:
+        Pydantic model instance(s) or fallback to parsed JSON
+    """
+    config = resolve_model_config(model_id)
+    model = config["model"]
+    
+    # Add thinking parameters if supported
+    if config.get("supports_thinking") and "reasoning_effort" not in kwargs:
+        if "default_thinking" in config:
+            kwargs.update(config["default_thinking"])
+            # For Anthropic models with thinking enabled, temperature must be 1.0
+            # and max_tokens must be high enough to account for thinking budget
+            if "anthropic" in model.lower():
+                temperature = 1.0
+                # Ensure max_tokens is high enough for thinking budget using config values
+                min_tokens = config["thinking_min_tokens"]
+                token_buffer = config["thinking_token_buffer"]
+                if max_tokens < min_tokens:
+                    max_tokens = max(max_tokens + token_buffer, min_tokens)
+    
+    response = litellm.completion(
+        model=model,
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        n=n,
+        response_format=response_format,
+        **kwargs
+    )
+    
+    # Handle structured output
+    if n == 1:
+        # Try to get parsed object first, fallback to manual parsing
+        if hasattr(response.choices[0].message, 'parsed') and response.choices[0].message.parsed is not None:
+            return response.choices[0].message.parsed
+        else:
+            # Manually parse the JSON content - raise exception if it fails
+            content = response.choices[0].message.content.strip()
+            try:
+                return response_format.parse_raw(content)
+            except Exception as e:
+                raise ValueError(f"Failed to parse structured output. Content was: {content}") from e
+    else:
+        results = []
+        for i, choice in enumerate(response.choices):
+            if hasattr(choice.message, 'parsed') and choice.message.parsed is not None:
+                results.append(choice.message.parsed)
+            else:
+                # Manually parse the JSON content - raise exception if it fails
+                content = choice.message.content.strip()
+                try:
+                    results.append(response_format.parse_raw(content))
+                except Exception as e:
+                    raise ValueError(f"Failed to parse structured output for choice {i}. Content was: {content}") from e
+        return results
 
 # --- Convenience: Return single string if n==1 ---
 def prompt_completion_one(*args, **kwargs) -> str:

@@ -10,7 +10,7 @@ from content_utils.text_utils import remove_bullet_etc
 from graphics_utils import dalle
 from content_utils.llm import prompt_completion_chat
 from set_logging.logger import log_generation_step
-from llm_config import LLMModel
+from content_utils.llm_config import LLMModel
 
 DETAILS_IN_ORDER = [
     'name',
