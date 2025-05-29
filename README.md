@@ -1,4 +1,3 @@
-
 # MTG Random Card Generator
 
 Generate custom Magic: The Gathering cards. Use ChatGPT or another LLM to generate JSON card details, using existing cards as examples (and to cue the formatting). Then, use an image generation AI such as DALLE to generate art for the cards. Full cards are then rendered using the generated JSON and images.
@@ -42,7 +41,7 @@ The project is structured into these main parts:
    - `--atomic-cards-file`: Path to AtomicCards.json.
    - `--set-size`: If all or set, the size of the set to generate. 
    - `--max-cards-generate`: Maximum number of cards to generate. This may be smaller than the set size. If 0, no max.
-   - `--llm-model`: LLM model to use. Choices: gpt-3.5-turbo, gpt-4
+   - `--llm-model`: LLM model to use. Choices: BEST_WRITING_MODEL, CHEAP_WRITING_MODEL (see llm_config.py for mapping)
    - `--graphics-model`: Graphics model to use. Currently supports either `dalle` or `midjourney`
 
 3. **Execution**:
@@ -73,7 +72,7 @@ The project is structured into these main parts:
    
    - To run all the above steps in sequence:
      ```
-     python main.py all --set-name "new_set" --set-description "A cool game about wizards and caves and monsters and stuff." --set-size 12 --max-cards-generate 12 --llm-model gpt-3.5-turbo --graphics-model dalle
+     python main.py all --set-name "new_set" --set-description "A cool game about wizards and caves and monsters and stuff." --set-size 12 --max-cards-generate 12 --llm-model BEST_WRITING_MODEL --graphics-model dalle
      ```
 
 ---
@@ -101,4 +100,7 @@ Art Generation:
 Full Card Rendering:
 - [ ] Improve the final card rendering. Right now they look quite ugly.
 - [ ] In particular, mana symbols aren't rendering properly.
+
+Note:
+- Model mapping is now handled in llm_config.py using internal identifiers.
 

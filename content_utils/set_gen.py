@@ -1,10 +1,11 @@
 import os
 import re
 
-from content_utils.gpt import prompt_completion_chat
+from content_utils.llm import prompt_completion_chat
 from content_utils.set_balancer import create_balanced_set
 from content_utils.text_utils import remove_bullet_etc
 from set_logging.logger import log_generation_step
+from llm_config import LLMModel
 
 
 def generate_set_description(args):
@@ -30,7 +31,7 @@ If this set idea reminds you of any existing cards, please mention them, but be 
     print(f"Generating set description for {args.set_name}")
     messages = [{"role": "system", "content": "You are a brilliant game designer"},
                 {"role": "user", "content": prompt},]
-    first_description = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=3800, model=args.llm_model)
+    first_description = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=3800, model_id=args.llm_model)
 
     messages.append({"role": "assistant", "content": f"{first_description}"})
     messages.append({"role": "user", "content": f"""That's great! I want to edit this down a bit though. Can you narrow it down to a shorter list of your top 6 favorite existing mechanics for this set theme? These should be balanced and supportive of the draft archetypes we want. Explain how each mechanic works. Describe what makes the mechanic fun to play and draft.
@@ -40,7 +41,7 @@ Then, rewrite the 10 color-pair draft archetypes. Connect them to the mechanics 
 Remember, the set theme is: {args.set_description}
 
 Then write one paragraph giving thematic guidance for this set."""},)
-    better_description = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1000, model=args.llm_model)
+    better_description = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1000, model_id=args.llm_model)
 
     print("Here's the description we got:")
     print(better_description)
@@ -80,7 +81,7 @@ Write the name of each one on a separate line starting with a *. """
                 {"role": "user", "content": prompt}, ]
 
     story_and_elements = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=3200,
-                                                model=args.llm_model)
+                                                model_id=args.llm_model)
 
     print("Story and elements generated.")
     print(story_and_elements)
@@ -111,7 +112,7 @@ Like this:
 Each line of your response must be exactly in this format! Do not include any other details or commentary!
 * Card Name. Card Type. Rarity. Color. Coolness X."""
     described_cards = prompt_completion_chat(messages=[{"role": "system", "content": "You are a game designer who loves stories but also good mechanics"},
-                                                       {"role": "user", "content": prompt}], n=1, temperature=0.2, max_tokens=3200, model=args.llm_model)
+                                                       {"role": "user", "content": prompt}], n=1, temperature=0.2, max_tokens=3200, model_id=args.llm_model)
 
     print("Described cards generated.")
     print(described_cards)
@@ -173,7 +174,7 @@ Write each card on its own line, like this:
 
 Please don't describe the full stats of each card, just give a few words to help shape the theme of the card."""},]
 
-        card_suggestions = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1000, model=args.llm_model)
+        card_suggestions = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1000, model_id=args.llm_model)
 
         print(f"Here are the cards we got:")
         print(card_suggestions)

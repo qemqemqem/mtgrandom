@@ -1,15 +1,20 @@
 import random
 import re
 from typing import Tuple
+from pydantic import BaseModel
 
-from content_utils.gpt import prompt_completion_chat
+from content_utils.llm import prompt_completion_chat
 from set_logging.logger import log_generation_step
+from llm_config import LLMModel
 
 with open('content_utils/artists_for_inspiration.txt') as f:
     artists_for_inspiration = [l for l in f.read().splitlines() if l.strip() != ""]
 with open('content_utils/art_styles_for_inspiration.txt') as f:
     art_styles_for_inspiration = [l for l in f.read().splitlines() if l.strip() != ""]
 
+class ArtPromptModel(BaseModel):
+    final_prompt: str
+    artist_credit: str
 
 def get_art_prompt(card, args) -> Tuple[str, str]:
     name = card['name']
@@ -56,69 +61,34 @@ From the options that you've brainstormed, loosely describe the card art. Try to
 
 # Prompt
 
-Final Prompt: \"[Card Name], from [Source], [describe the scene in one sentence or less], [list several adjectives], in the style of [style], [visual medium], by [artist name] and [historical artist]\"
-
-Artist Credit: [artist name], [second artist, if more than one]"""
-
-    # TODO(andrew): Experiment with removing "Magic the Gathering art, spec art," from the prompt
+Now, output a JSON object with the following fields:
+- final_prompt: \"[Card Name], from [Source], [describe the scene in one sentence or less], [list several adjectives], in the style of [style], [visual medium], by [artist name] and [historical artist]\"
+- artist_credit: [artist name], [second artist, if more than one]
+"""
 
     temperature = 0.0
-
-    # Try several times with increasing temperature
     for _ in range(3):
-        response = prompt_completion_chat(messages=[{"role": "system", "content": "You are an artistic assistant who works with Magic the Gathering"}, {"role": "user", "content": prompt}], n=1, temperature=temperature, max_tokens=2048, model=args.llm_model)
-
-        for line in response.split("\n"):
-            if line.startswith("Final Prompt:") or "Magic the Gathering art, spec art," in line:
-                found_prompt = line.replace("Final Prompt:", "").replace("\"", "").strip()
-                print("Found a prompt!", found_prompt)
-
-                # Get the artist for use in attribution
-                artist = get_artist_name(response, found_prompt)
-
-                log_generation_step("art prompt", "Create an art prompt for this card",
-                                    f"Prompt: {found_prompt}\n\nArtist: {artist}\n\nFull: {response}", args.set_name if args else None,
-                                    name)
-
-                return found_prompt, artist
-
+        response = prompt_completion_chat(
+            messages=[
+                {"role": "system", "content": "You are an artistic assistant who works with Magic the Gathering"},
+                {"role": "user", "content": prompt}
+            ],
+            n=1,
+            temperature=temperature,
+            max_tokens=2048,
+            model_id=args.llm_model,
+            response_format=ArtPromptModel
+        )
+        # litellm will return a list of ArtPromptModel(s)
+        if response:
+            art_prompt_obj = response[0] if isinstance(response[0], ArtPromptModel) else ArtPromptModel.parse_raw(response[0])
+            log_generation_step(
+                "art prompt",
+                "Create an art prompt for this card",
+                f"Prompt: {art_prompt_obj.final_prompt}\n\nArtist: {art_prompt_obj.artist_credit}\n\nFull: {response}",
+                args.set_name if args else None,
+                name
+            )
+            return art_prompt_obj.final_prompt, art_prompt_obj.artist_credit
         temperature += 0.3
-
     raise ValueError("Art direction prompt not found")
-
-
-def get_artist_name(full_response, final_prompt):
-    if "Artist Credit:" in full_response:
-        artist = full_response.split("Artist Credit:")[1].split("\n")[0].strip()
-        return artist
-
-    # If the artist is not specified, try to find it in the prompt
-    for attribution in [r"by", r"By", r"style of"]:
-        artist_pattern = r"\b" + attribution + r"\b\s+([A-Z][^\s]*(?:\s+[A-Z][^\s]*)*)"
-        artist = re.findall(artist_pattern, final_prompt)
-        if artist:
-            # print(f"Artist found: {artist[0]}")
-            return artist[0]
-    lazy_artist_pattern = r"\b([A-Z][^\s]*(?:\s+[A-Z][^\s]*)*)"
-    if re.findall(lazy_artist_pattern, final_prompt):
-        artist = re.findall(lazy_artist_pattern, final_prompt)[0]
-        # print(f"Artist found: {artist}")
-        return artist
-    print("Artist not found in prompt:", final_prompt)
-    return "Unknown"
-
-
-if __name__ == "__main__":
-    # Sample description strings
-    found_prompts = [
-        "A cool bird drawn by Kehinde Wiley",
-        "An abstract painting by Zdzisław Beksiński",
-        "A surreal artwork by H.R. Giger",
-        "a cool wizard in the style of Picasso",
-        "nice graffiti of a squid that was done by Banksy",
-        "cool picture of a mountain",
-    ]
-
-    for found_prompt in found_prompts:
-        artist = get_artist_name(found_prompt, found_prompt)
-        print(f"Artist: {artist}")

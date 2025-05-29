@@ -9,6 +9,7 @@ from content_utils.set_gen import generate_set_description, generate_card_sugges
 from graphics_utils import render_full_card, midjourney
 from content_utils.card_gen_tools import *
 from mse import mse_gen
+from llm_config import LLMModel
 
 
 def parse_arguments():
@@ -21,13 +22,15 @@ def parse_arguments():
     parser.add_argument('--atomic-cards-file', default='AtomicCards.json', help='Path to AtomicCards.json.')
     parser.add_argument('--max-cards-generate', default=0, type=int, help='Maximum number of cards to generate. If zero, no max.')
     parser.add_argument('--set-size', default=18, type=int, help='The size of the set.')
-    parser.add_argument('--llm-model', default='gpt-3.5-turbo', help='LLM model to use.')
+    parser.add_argument('--llm-model', default='BEST_WRITING_MODEL', help='LLM model to use.')
     parser.add_argument('--graphics-model', default='dalle', help='Graphics model to use. Options: dalle, midjourney')
     parser.add_argument('--art-guidance', default='', help='Art guidance for the graphics model.')
     parser.add_argument('--art-only', action='store_true', help='Only generate art.')
     parser.add_argument('--mse-location', default='', help='Location of your mse.exe file, the Magic Set Editor. Used by the "full" action. If empty, cards will be rendered with an ugly HTML based method. If you\'re on Linux, use "wine mse.exe".')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.llm_model = LLMModel[args.llm_model]
+    return args
 
 
 def generate_set(args):

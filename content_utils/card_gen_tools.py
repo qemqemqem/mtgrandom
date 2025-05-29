@@ -8,8 +8,9 @@ import requests
 from content_utils.mechanics_balancer import generate_sets_with_target_complexity_str_to_strs
 from content_utils.text_utils import remove_bullet_etc
 from graphics_utils import dalle
-from content_utils.gpt import prompt_completion_chat
+from content_utils.llm import prompt_completion_chat
 from set_logging.logger import log_generation_step
+from llm_config import LLMModel
 
 DETAILS_IN_ORDER = [
     'name',
@@ -159,7 +160,7 @@ Put each possible mechanic on its own line, like this:
     messages = [{"role": "system", "content": f"You are a game designer creating Magic the Gathering cards. You love good mechanics and good gameplay."},
                 {"role": "user", "content": prompt},]
 
-    suggested_mechanics_str = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=1512, model=args.llm_model)
+    suggested_mechanics_str = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=1512, model_id=args.llm_model)
 
     guess_card_name = remove_bullet_etc(card_idea)[:remove_bullet_etc(card_idea).index(".")]
     if ":" in guess_card_name:
@@ -225,7 +226,7 @@ Again, the card idea is: {card_idea}
 
 Please think about the design and then say "# Final Card" and then give a card design."""},]
 
-    final_card_mechanics_idea = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1512, model=args.llm_model)
+    final_card_mechanics_idea = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1512, model_id=args.llm_model)
     print(final_card_mechanics_idea)
 
     log_generation_step("final card mechanics idea", messages[1]["content"], final_card_mechanics_idea, args.set_name if args else None, guess_card_name)
@@ -253,7 +254,7 @@ Make sure the card mechanics are in oracle text.
 
 Finally, in the same JSON format that you showed me above, write out the full details of the card."""},]
 
-    final_card = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1512, model=args.llm_model)
+    final_card = prompt_completion_chat(messages=messages, n=1, temperature=0.2, max_tokens=1512, model_id=args.llm_model)
     print(final_card)
 
     log_generation_step("final card json", messages[3]["content"], final_card, args.set_name if args else None, guess_card_name)
@@ -308,7 +309,7 @@ Rate the flavor of the card and the match between the flavor and the mechanics o
 If the card passes all these tests, then great! Please write "Looks good".
 
 For now, just answer the questions."""},]
-    criticism = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=512, model=args.llm_model)
+    criticism = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=512, model_id=args.llm_model)
 
     log_generation_step("please criticize card", messages[1]["content"], criticism, args.set_name if args else None, card["name"] if "name" in card else "Unknown Card")
 
@@ -345,7 +346,7 @@ Here are the details of the card that needs to be fixed, again:
 ```json
 {card_to_text(card)}
 ```"""}, ]
-        improved_card = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=512, model=args.llm_model)
+        improved_card = prompt_completion_chat(messages=messages, n=1, temperature=0.0, max_tokens=512, model_id=args.llm_model)
 
         log_generation_step("improved card", messages[3]["content"], improved_card, args.set_name if args else None, card["name"] if "name" in card else "Unknown Card")
 
