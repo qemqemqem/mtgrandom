@@ -1,0 +1,13 @@
+# Copy this file to .env and fill in the values
+
+# Midjourney API Configuration
+# Get these values from Discord Developer Portal and following the guide at:
+# https://github.com/yachty66/unofficial_midjourney_python_api
+
+# Replace these placeholder values with your actual Discord/Midjourney credentials
+# MJ_APPLICATION_ID=your_application_id_here
+# MJ_GUILD_ID=your_guild_id_here
+# MJ_CHANNEL_ID=your_channel_id_here
+# MJ_VERSION=your_version_here
+# MJ_ID=your_id_here
+# MJ_AUTHORIZATION=your_authorization_token_here 

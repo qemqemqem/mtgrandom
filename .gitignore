@@ -147,4 +147,15 @@ debug_card.html
 !sets/example_nice/**/*
 !Card Examples/*
 
+# Add these explicitly yourself
+Card Examples/*
+sets/*/images/*
+sets/*/cards.jsonl
+sets/*/card_suggestions.txt
+sets/*/story.txt
+sets/*/set_description.txt
+sets/*
+
+# Env stuff
+.envrc
 .env
