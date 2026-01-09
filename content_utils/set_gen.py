@@ -5,7 +5,7 @@ from content_utils.llm import prompt_completion_chat
 from content_utils.set_balancer import create_balanced_set
 from content_utils.text_utils import remove_bullet_etc
 from set_logging.logger import log_generation_step
-from llm_config import LLMModel
+from content_utils.llm_config import LLMModel
 
 
 def generate_set_description(args):

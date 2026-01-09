@@ -3,7 +3,6 @@ from types import SimpleNamespace
 
 from content_utils.llm import prompt_completion_chat
 from set_logging.logger import log_generation_step
-from llm_config import LLMModel
 
 
 def write_flavor_for_card(card_idea, card_json, story, args):
@@ -101,6 +100,6 @@ if __name__ == "__main__":
 
     story = """For thematic guidance, this set should evoke the grandeur and mystery of ancient Sumerian mythology. The gods should feel powerful and awe-inspiring, with mechanics like devotion and constellation representing their influence and authority. The netherworld should feel eerie and foreboding, with mechanics like embalm and sacrifice representing its dark and dangerous nature. The theme of creation should be represented through the creation of tokens and the growth of creatures, with mechanics like afterlife and devotion. The art and flavor text should further reinforce these themes, drawing from Sumerian myths and iconography to create a rich and immersive world."""
 
-    args = SimpleNamespace(llm_model=LLMModel.gpt_4, set_name=None)
+    # args = SimpleNamespace(llm_model=LLMModel.gpt_4, set_name=None)
 
-    flavor = write_flavor_for_card(idea, card_json, story, args)
+    flavor = write_flavor_for_card(idea, card_json, story)

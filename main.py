@@ -9,7 +9,7 @@ from content_utils.set_gen import generate_set_description, generate_card_sugges
 from graphics_utils import render_full_card, midjourney
 from content_utils.card_gen_tools import *
 from mse import mse_gen
-from llm_config import LLMModel
+from content_utils.llm_config import LLMModel
 
 
 def parse_arguments():
